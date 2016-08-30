@@ -80,6 +80,43 @@
   // Empty function, used as default callback
   function empty() {}
 
+  function ajaxScript(options, deferred){
+    if (!('type' in options)) return $.ajax(options)
+
+    var script = document.createElement('script'),
+      abort = function(errorType) {
+        $(script).triggerHandler('error', errorType || 'abort')
+      },
+      xhr = { abort: abort }, abortTimeout
+
+    if (deferred) deferred.promise(xhr)
+
+    $(script).on('load error', function(e, errorType){
+      clearTimeout(abortTimeout)
+      $(script).off().remove()
+
+      if (e.type == 'error') {
+        ajaxError(null, errorType || 'error', xhr, options, deferred)
+      } else {
+        ajaxSuccess(null, xhr, options, deferred)
+      }
+    })
+
+    if (ajaxBeforeSend(xhr, options) === false) {
+      abort('abort')
+      return xhr
+    }
+
+    script.src = options.url
+    document.head.appendChild(script)
+
+    if (options.timeout > 0) abortTimeout = setTimeout(function(){
+      abort('timeout')
+    }, options.timeout)
+
+    return xhr
+  }
+
   $.ajaxJSONP = function(options, deferred){
     if (!('type' in options)) return $.ajax(options)
 
@@ -229,6 +266,10 @@
         settings.url = appendQuery(settings.url,
           settings.jsonp ? (settings.jsonp + '=?') : settings.jsonp === false ? '' : 'callback=?')
       return $.ajaxJSONP(settings, deferred)
+    }
+
+    if (settings.crossDomain && 'script' == dataType) {
+      return ajaxScript(settings, deferred)
     }
 
     var mime = settings.accepts[dataType],

@@ -634,6 +634,21 @@
         })
       },
 
+      testAjaxScript: function(t){
+        t.pause()
+        window.testValue = 0
+        var xhr = $.ajax({
+          url:'fixtures/ajax_load_javascript.js',
+          dataType: 'script',
+          crossDomain: true,
+          success: t.reg.resumeHandler('success', function(response){
+            // check that the javascript has loaded and executed.
+            t.assertEqual(window.testValue, 1)
+            delete window.testValue
+          })
+        })
+      },
+
       testNoCacheParam: function(t) {
         t.pause()
         var xhr = $.ajax({
