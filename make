@@ -41,8 +41,8 @@ target.build = ->
   modules = (env['MODULES'] || 'zepto event ajax form ie').split(' ')
   module_files = ( "src/#{module}.js" for module in modules )
   intro = "/* Zepto #{describe_version()} - #{modules.join(' ')} - zeptojs.com/license */\n"
-  dist = cat(module_files).replace(/^\/[\/*].*$/mg, '').replace(/\n{3,}/g, "\n\n")
-  dist = cat('src/amd_layout.js').replace(/YIELD/, -> dist.trim()) unless env['NOAMD']
+  dist = cat(module_files)
+  dist = cat('src/exports_layout.js').replace(/YIELD/, -> dist.trim()) unless env['NOAMD']
   (intro + dist).to(zepto_js)
   report_size(zepto_js)
 
